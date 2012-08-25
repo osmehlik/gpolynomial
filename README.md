@@ -12,6 +12,10 @@ Controls
 - **Move an existing point** by drag-and-drop.
 - **Remove an existing point** by right-click.
 
+Screenshot
+----------
+![gPolynomial](https://raw.github.com/osmehlik/gpolynomial/master/Screenshot.png)
+
 License
 -------
 
