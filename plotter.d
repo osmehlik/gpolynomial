@@ -60,6 +60,14 @@ class Plot : DrawingArea
         addEvents(GdkEventMask.POINTER_MOTION_MASK);
     }
 
+    void addPoint(Vec2D point)
+    {
+	points ~= point;
+        double[] polynomial = polyInterpolate(points);
+        polyLabel.setMarkup(polyPrint(polynomial));
+        queueDrawArea(0, 0, getAllocation().width, getAllocation().height);
+    }
+
     bool onPress(GdkEventButton *button, Widget self)
     {
 	Vec2D point = {
