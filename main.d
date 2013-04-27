@@ -18,10 +18,10 @@ import std.conv;
 extern(C) export void onAboutClicked(GtkMenuItem *item)
 {
     int response = widgets.about.run();
-    if ((response == GtkResponseType.GTK_RESPONSE_DELETE_EVENT)
-        || (response == GtkResponseType.GTK_RESPONSE_CLOSE)
-	|| (response == GtkResponseType.GTK_RESPONSE_CANCEL)) {
-        widgets.about.hideAll();
+    if ((response == GtkResponseType.DELETE_EVENT)
+        || (response == GtkResponseType.CLOSE)
+	|| (response == GtkResponseType.CANCEL)) {
+        widgets.about.hide();
     }
 }
 
@@ -34,7 +34,7 @@ extern(C) export void onPointAddClicked(GtkToolButton *btn)
 
 extern(C) export void onPointAddCancelButtonClicked(GtkButton *button)
 {
-    widgets.pointAdd.hideAll();
+    widgets.pointAdd.hide();
 }
 
 extern(C) export void onPointAddOkButtonClicked(GtkButton *button)
@@ -49,7 +49,7 @@ extern(C) export void onPointAddOkButtonClicked(GtkButton *button)
         y = parse!double(yText);
     }
     catch {
-	// user entered nonsense, nothing to add
+	    // user entered nonsense, nothing to add
         return;
     }
 
@@ -57,7 +57,7 @@ extern(C) export void onPointAddOkButtonClicked(GtkButton *button)
 
     widgets.polyPlot.addPoint(point);
 
-    widgets.pointAdd.hideAll();
+    widgets.pointAdd.hide();
 }
 
 struct Widgets_t

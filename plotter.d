@@ -11,6 +11,7 @@ import gtk.DrawingArea;
 import gtk.Label;
 import gtk.Widget;
 import gtk.Window;
+private import gdk.Event;
 import net.smehlik.poly;
 import std.algorithm;
 import std.math;
@@ -51,7 +52,7 @@ class Plot : DrawingArea
         this.polyLabel = polyLabel;
 
         // connect signal handlers
-        addOnExpose(&onExpose);
+        addOnDraw(&onExpose);
 	addOnButtonPress(&onPress);
         addOnButtonRelease(&onRelease);
         addOnMotionNotify(&onMotionNotify);
@@ -65,17 +66,20 @@ class Plot : DrawingArea
 	points ~= point;
         double[] polynomial = polyInterpolate(points);
         polyLabel.setMarkup(polyPrint(polynomial));
-        queueDrawArea(0, 0, getAllocation().width, getAllocation().height);
+        queueDraw();
     }
 
-    bool onPress(GdkEventButton *button, Widget self)
+    bool onPress(Event event, Widget self)
     {
+        GtkAllocation a;
+        
+        self.getAllocation(a);
 	Vec2D point = {
-            x:    button.x - self.getAllocation().width / 2,
-            y: - (button.y - self.getAllocation().height / 2)
+            x:    event.button.x - a.width / 2,
+            y: - (event.button.y - a.height / 2)
 	};
 
-        if (button.button == 1) {
+        if (event.button.button == 1) {
             for (uint i = 0; i < points.length; ++i) {
 	        if (dist(point, points[i]) < POINT_SELECTION_TOLERANCE) {
                     isDragging = true;
@@ -88,28 +92,36 @@ class Plot : DrawingArea
 	return true;
     }
 
-    bool onMotionNotify(GdkEventMotion *motion, Widget self)
+    bool onMotionNotify(Event event, Widget self)
     {
+        GtkAllocation a;
+        
+        self.getAllocation(a);
+        
         Vec2D point = {
-            x:    motion.x - self.getAllocation().width / 2,
-            y: - (motion.y - self.getAllocation().height / 2)
+            x:    event.motion.x - a.width / 2,
+            y: - (event.motion.y - a.height / 2)
         };
 
         if (isDragging) {
 	    points[draggedPointIndex] = point;
             double[] polynomial = polyInterpolate(points);
             polyLabel.setMarkup(polyPrint(polynomial));
-            queueDrawArea(0, 0, self.getAllocation.width, self.getAllocation.height);
+            queueDraw();
 	}
 
 	return true;
     }
 
-    bool onRelease(GdkEventButton *button, Widget self)
+    bool onRelease(Event event, Widget self)
     {
+        GtkAllocation a;
+        
+        self.getAllocation(a);
+        
         Vec2D point = {
-            x:    button.x - self.getAllocation().width / 2,
-            y: - (button.y - self.getAllocation().height / 2)
+            x:    event.button.x - a.width / 2,
+            y: - (event.button.y - a.height / 2)
         };
 
         // if we are dragging, stop dragging
@@ -119,7 +131,7 @@ class Plot : DrawingArea
 	else {
 
             // which button was released?
-            switch (button.button) {
+            switch (event.button.button) {
 		// left button was released
                 case 1:
 		    points ~= point;
@@ -142,19 +154,21 @@ class Plot : DrawingArea
 
         double[] polynomial = polyInterpolate(points);
         polyLabel.setMarkup(polyPrint(polynomial));
-        queueDrawArea(0, 0, self.getAllocation.width, self.getAllocation.height);
+        queueDraw();
 
         return true;
     }
 
-    bool onExpose(GdkEventExpose *event, Widget self)
+    bool onExpose(Context context, Widget self)
     {
+        GtkAllocation a;
+        
+        self.getAllocation(a);
+        
             auto drawable = self.getWindow();
 
-            auto context = new Context(drawable);
-
-            const int WIDTH       = cast(int) self.getAllocation().width;
-            const int HEIGHT      = cast(int) self.getAllocation().height;
+            const int WIDTH       = cast(int) a.width;
+            const int HEIGHT      = cast(int) a.height;
             const int HALF_WIDTH  = WIDTH / 2;
 	    const int HALF_HEIGHT = HEIGHT / 2;
 

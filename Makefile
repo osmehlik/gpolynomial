@@ -1,9 +1,10 @@
 
 DC = dmd
+DFLAGS = `pkg-config --cflags --libs gtkd-2`
 PROG = gPolynomial
 
 $(PROG): main.d plotter.d poly.d
-	$(DC) -of$@ -D $^ `pkg-config --cflags --libs gtkd` -unittest -debug -Dddoc
+	$(DC) $(DFLAGS) -of$@ -D $^
 clean:
 	rm $(PROG) *.o
 
