@@ -4,17 +4,14 @@
  * Authors: Oldrich Smehlik, oldrich@smehlik.net
  */
 
-module net.smehlik.poly;
+module net.smehlik.math.polynomial;
 
 import std.conv;
 import std.math;
 import std.stdio;
 import std.string;
+import net.smehlik.types;
 
-struct Vec2D
-{
-    double x, y;
-}
 
 /**
  * Adds two polynomials

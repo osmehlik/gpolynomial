@@ -10,8 +10,9 @@ import gtk.Main;
 import gtk.VBox;
 import gtk.Label;
 import gtk.MainWindow;
-import net.smehlik.poly;
-import net.smehlik.plotter;
+import net.smehlik.types;
+import net.smehlik.math.polynomial;
+import net.smehlik.gui.plotter;
 import std.stdio;
 import std.conv;
 
@@ -30,6 +31,17 @@ extern(C) export void onPointAddClicked(GtkToolButton *btn)
     widgets.pointAdd.showAll();
     widgets.pointAddXEntry.setText("");
     widgets.pointAddYEntry.setText("");
+}
+
+
+extern(C) export void onZoomInClicked(GtkToolButton *btn)
+{
+    widgets.polyPlot.zoomBy(0.5);
+}
+
+extern(C) export void onZoomOutClicked(GtkToolButton *btn)
+{
+    widgets.polyPlot.zoomBy(2);
 }
 
 extern(C) export void onPointAddCancelButtonClicked(GtkButton *button)
