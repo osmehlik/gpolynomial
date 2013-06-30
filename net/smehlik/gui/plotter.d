@@ -120,12 +120,12 @@ class Plot : DrawingArea
         
         self.getAllocation(a);
         
-        Vec2D point = {
+        Vec2D pointScreen = {
             x:    event.button.x,
             y:    event.button.y
         };
 
-        point = coordsScreenToValue(point);
+        Vec2D pointValue = coordsScreenToValue(pointScreen);
 
         // if we are dragging, stop dragging
         if (isDragging) {
@@ -137,13 +137,14 @@ class Plot : DrawingArea
             switch (event.button.button) {
                 // left button was released
                 case 1:
-                   points ~= point;
+                   points ~= pointValue;
                 break;
                 // right button was released
                 case 3:
                     // remove any points under right button
                     for (uint i = 0; i < points.length; ++i) {
-                        if (dist(point, points[i]) < POINT_SELECTION_TOLERANCE) {
+		        Vec2D iPointScreen = coordsValueToScreen(points[i]);
+                        if (dist(pointScreen, iPointScreen) < POINT_SELECTION_TOLERANCE) {
                             remove(points, i);
                             points.length = points.length -1;
                             break;
