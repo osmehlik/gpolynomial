@@ -65,7 +65,7 @@ extern(C) export void onPointAddOkButtonClicked(GtkButton *button)
         return;
     }
 
-    Vec2D point = { x: x, y: y };
+    Vec2 point = { x: x, y: y };
 
     widgets.polyPlot.addPoint(point);
 

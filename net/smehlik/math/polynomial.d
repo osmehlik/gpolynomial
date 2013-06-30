@@ -172,7 +172,7 @@ void polyRemoveTrailingZeros(T = double)(ref T[] p)
  * Returns:
  *     lagrange polynomial interpolating a set of points 
  */
-pure T[] polyInterpolate(T=double)(Vec2D[] points)
+pure T[] polyInterpolate(T=double)(Vec2[] points)
 {
     T[] result;
 

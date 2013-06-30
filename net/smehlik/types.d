@@ -1,5 +1,5 @@
 
 module net.smehlik.types;
 
-struct Vec2D { double x, y; }
+struct Vec2 { double x, y; }
 

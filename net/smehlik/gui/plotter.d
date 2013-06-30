@@ -27,14 +27,20 @@ struct PlotArea
     bool isYAxisVisible() { return (xMin < 0) && (0 < xMax); }
 }
 
-const double POINT_SELECTION_TOLERANCE = 8;
-const int AXIS_MARKER_SIZE = 8;
-const int POINT_TEXT_OFFSET = 8;
+struct PlotOptions
+{
+    // maximal distance of click from point location considered as selecting point
+    int pointSelectionTolerance;
+    int axisMarkerSize;
+    // offset between point and its description in both X and Y axis
+    int pointDescriptionOffset;
+}
 
 class Plot : DrawingArea
 {
     PlotArea plotArea;
-    Vec2D[] points;
+    PlotOptions plotOptions;
+    Vec2[] points;
     Label *polyLabel;
 
     bool isDragging = false;
@@ -58,9 +64,13 @@ class Plot : DrawingArea
         plotArea.xMax =  10;
         plotArea.yMin =  -5;
         plotArea.yMax =   5;
+
+        plotOptions.pointSelectionTolerance = 8;
+        plotOptions.axisMarkerSize = 8;
+        plotOptions.pointDescriptionOffset = 8;
     }
 
-    void addPoint(Vec2D point)
+    void addPoint(Vec2 point)
     {
         points ~= point;
         double[] polynomial = polyInterpolate(points);
@@ -72,15 +82,15 @@ class Plot : DrawingArea
     {
         GtkAllocation a;
         
-        Vec2D point = {
-            x:    event.button.x,
-            y:    event.button.y
+        Vec2 point = {
+            x: event.button.x,
+            y: event.button.y
         };
 
         if (event.button.button == 1) {
             for (uint i = 0; i < points.length; ++i) {
-                Vec2D v = coordsValueToScreen(points[i]);
-                if (dist(point, v) < POINT_SELECTION_TOLERANCE) {
+                Vec2 v = coordsValueToScreen(points[i]);
+                if (dist(point, v) < plotOptions.pointSelectionTolerance) {
                     isDragging = true;
                     draggedPointIndex = i;
                     return true;
@@ -97,9 +107,9 @@ class Plot : DrawingArea
         
         self.getAllocation(a);
         
-        Vec2D point = {
-            x:    event.button.x,
-            y:    event.button.y
+        Vec2 point = {
+            x: event.button.x,
+            y: event.button.y
         };
 
         point = coordsScreenToValue(point);
@@ -120,12 +130,12 @@ class Plot : DrawingArea
         
         self.getAllocation(a);
         
-        Vec2D pointScreen = {
-            x:    event.button.x,
-            y:    event.button.y
+        Vec2 pointScreen = {
+            x: event.button.x,
+            y: event.button.y
         };
 
-        Vec2D pointValue = coordsScreenToValue(pointScreen);
+        Vec2 pointValue = coordsScreenToValue(pointScreen);
 
         // if we are dragging, stop dragging
         if (isDragging) {
@@ -143,8 +153,8 @@ class Plot : DrawingArea
                 case 3:
                     // remove any points under right button
                     for (uint i = 0; i < points.length; ++i) {
-		        Vec2D iPointScreen = coordsValueToScreen(points[i]);
-                        if (dist(pointScreen, iPointScreen) < POINT_SELECTION_TOLERANCE) {
+		        Vec2 iPointScreen = coordsValueToScreen(points[i]);
+                        if (dist(pointScreen, iPointScreen) < plotOptions.pointSelectionTolerance) {
                             remove(points, i);
                             points.length = points.length -1;
                             break;
@@ -163,18 +173,18 @@ class Plot : DrawingArea
         return true;
     }
 
-    void drawPoint(Context context, Vec2D point, Vec2D value)
+    void drawPoint(Context context, Vec2 point, Vec2 value)
     {
         // draw cross
-        context.moveTo(point.x - POINT_SELECTION_TOLERANCE, point.y);
-        context.lineTo(point.x + POINT_SELECTION_TOLERANCE, point.y);
-        context.moveTo(point.x, point.y - POINT_SELECTION_TOLERANCE);
-        context.lineTo(point.x, point.y + POINT_SELECTION_TOLERANCE);
+        context.moveTo(point.x - plotOptions.pointSelectionTolerance, point.y);
+        context.lineTo(point.x + plotOptions.pointSelectionTolerance, point.y);
+        context.moveTo(point.x, point.y - plotOptions.pointSelectionTolerance);
+        context.lineTo(point.x, point.y + plotOptions.pointSelectionTolerance);
         
         // draw description
         context.selectFontFace("Sans", cairo_font_slant_t.NORMAL, cairo_font_weight_t.NORMAL);
         context.setFontSize(12);
-        context.moveTo(point.x + POINT_TEXT_OFFSET, point.y + POINT_TEXT_OFFSET);
+        context.moveTo(point.x + plotOptions.pointDescriptionOffset, point.y + plotOptions.pointDescriptionOffset);
         string text = format("[%.2f,%.2f]", value.x, value.y);
         context.showText(text); 
     }
@@ -225,16 +235,16 @@ class Plot : DrawingArea
 
                 // draw axis mark
                 context.setSourceRgb(0, 0, 0);
-                context.moveTo(yAxisX - AXIS_MARKER_SIZE, yScreen);
-                context.lineTo(yAxisX + AXIS_MARKER_SIZE, yScreen);
+                context.moveTo(yAxisX - plotOptions.axisMarkerSize, yScreen);
+                context.lineTo(yAxisX + plotOptions.axisMarkerSize, yScreen);
                 context.stroke();
             }
  
             // draw axis arrow
             context.setSourceRgb(0, 0, 0);
             context.moveTo(yAxisX, 0);
-            context.lineTo(yAxisX - AXIS_MARKER_SIZE, 2 * AXIS_MARKER_SIZE);
-            context.lineTo(yAxisX + AXIS_MARKER_SIZE, 2 * AXIS_MARKER_SIZE);
+            context.lineTo(yAxisX - plotOptions.axisMarkerSize, 2 * plotOptions.axisMarkerSize);
+            context.lineTo(yAxisX + plotOptions.axisMarkerSize, 2 * plotOptions.axisMarkerSize);
             context.fill();
         }
     
@@ -259,21 +269,21 @@ class Plot : DrawingArea
 
                 // draw axis mark
                 context.setSourceRgb(0, 0, 0);
-                context.moveTo(xScreen, xAxisY - AXIS_MARKER_SIZE);
-                context.lineTo(xScreen, xAxisY + AXIS_MARKER_SIZE);
+                context.moveTo(xScreen, xAxisY - plotOptions.axisMarkerSize);
+                context.lineTo(xScreen, xAxisY + plotOptions.axisMarkerSize);
                 context.stroke();
             }
 
             // draw axis arrow
             context.setSourceRgb(0, 0, 0);
             context.moveTo(WIDTH, xAxisY);
-            context.lineTo(WIDTH - 2 * AXIS_MARKER_SIZE, xAxisY - AXIS_MARKER_SIZE);
-            context.lineTo(WIDTH - 2 * AXIS_MARKER_SIZE, xAxisY + AXIS_MARKER_SIZE);
+            context.lineTo(WIDTH - 2 * plotOptions.axisMarkerSize, xAxisY - plotOptions.axisMarkerSize);
+            context.lineTo(WIDTH - 2 * plotOptions.axisMarkerSize, xAxisY + plotOptions.axisMarkerSize);
             context.fill();
         }
 
         // draw points
-        foreach (Vec2D point; points) {                
+        foreach (Vec2 point; points) {                
             // skip invisible points
             if (point.x < plotArea.xMin
                 || point.x > plotArea.xMax 
@@ -282,7 +292,7 @@ class Plot : DrawingArea
                 continue;
             }
                 
-            Vec2D screen = coordsValueToScreen(point);
+            Vec2 screen = coordsValueToScreen(point);
                 
             drawPoint(context, screen, point);
         }
@@ -341,10 +351,10 @@ class Plot : DrawingArea
         
         return cast(double) a.height;
     }   
-
-    Vec2D coordsValueToScreen(Vec2D value)
+    
+    Vec2 coordsValueToScreen(Vec2 value)
     {
-        Vec2D result;
+        Vec2 result;
 
         result.x = mapRange(plotArea.xMin, value.x, plotArea.xMax, 0.0, getWidgetWidth());
         result.y = mapRange(plotArea.yMin, value.y, plotArea.yMax, getWidgetHeight(), 0.0);
@@ -352,9 +362,9 @@ class Plot : DrawingArea
         return result;
     }
     
-    Vec2D coordsScreenToValue(Vec2D screen)
+    Vec2 coordsScreenToValue(Vec2 screen)
     {
-        Vec2D result;
+        Vec2 result;
         
         result.x = mapRange(0.0, screen.x, getWidgetWidth(), plotArea.xMin, plotArea.xMax);
         result.y = mapRange(0.0, screen.y, getWidgetHeight(), plotArea.yMax, plotArea.yMin);

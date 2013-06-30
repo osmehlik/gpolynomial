@@ -12,7 +12,7 @@ import net.smehlik.types;
  * Returns:
  *     the distance between p1 and p2
  */
-pure T dist(T = double)(ref Vec2D p1, ref Vec2D p2)
+pure T dist(T = double)(ref Vec2 p1, ref Vec2 p2)
 {
     T a = abs(p2.x - p1.x);
     T b = abs(p2.y - p1.y);
