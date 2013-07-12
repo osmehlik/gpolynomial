@@ -18,6 +18,7 @@ import net.smehlik.math.percentage;
 import net.smehlik.math.geometry;
 import std.algorithm;
 import std.math;
+import std.datetime;
 
 struct PlotArea
 {
@@ -36,15 +37,27 @@ struct PlotOptions
     int pointDescriptionOffset;
 }
 
+enum DraggedObject { POINT, VIEW };
+
+struct DragData
+{
+    bool mouseWasPressed = false;
+    Vec2 mousePressPosition;
+    PlotArea mousePressPlotArea;
+    SysTime mousePressTime;
+    bool isDragging = false;
+    DraggedObject draggedObject;
+    uint draggedObjectIndex = 0;
+}
+
 class Plot : DrawingArea
 {
     PlotArea plotArea;
     PlotOptions plotOptions;
     Vec2[] points;
     Label *polyLabel;
+    DragData dragData;
 
-    bool isDragging = false;
-    uint draggedPointIndex = 0;
 
     this(Label *polyLabel)
     {
@@ -82,17 +95,25 @@ class Plot : DrawingArea
     {
         GtkAllocation a;
         
-        Vec2 point = {
+        Vec2 pointScreen = {
             x: event.button.x,
             y: event.button.y
         };
 
         if (event.button.button == 1) {
+
+            dragData.mouseWasPressed = true;
+            dragData.mousePressPosition = pointScreen;
+            dragData.mousePressPlotArea = plotArea;
+            dragData.mousePressTime = Clock.currTime();
+            dragData.draggedObject = DraggedObject.VIEW;
+          
             for (uint i = 0; i < points.length; ++i) {
                 Vec2 v = coordsValueToScreen(points[i]);
-                if (dist(point, v) < plotOptions.pointSelectionTolerance) {
-                    isDragging = true;
-                    draggedPointIndex = i;
+                if (dist(pointScreen, v) < plotOptions.pointSelectionTolerance) {
+                    dragData.isDragging = true;
+                    dragData.draggedObject = DraggedObject.POINT;
+                    dragData.draggedObjectIndex = i;
                     return true;
                 }
             }
@@ -107,17 +128,45 @@ class Plot : DrawingArea
         
         self.getAllocation(a);
         
-        Vec2 point = {
+        Vec2 pointScreen = {
             x: event.button.x,
             y: event.button.y
         };
 
-        point = coordsScreenToValue(point);
+        Vec2 pointValue = coordsScreenToValue(pointScreen);
 
-        if (isDragging) {
-            points[draggedPointIndex] = point;
-            double[] polynomial = polyInterpolate(points);
-            polyLabel.setMarkup(polyPrint(polynomial));
+        if (dragData.mouseWasPressed) {
+            SysTime currentTime = Clock.currTime();
+            Duration elapsedTime = currentTime - dragData.mousePressTime;
+            Duration trigger = dur!"msecs"(200);
+
+            if ((elapsedTime > trigger) && (!dragData.isDragging)) {
+                dragData.isDragging = true;
+                dragData.draggedObject = DraggedObject.VIEW;
+            }
+        }
+        
+        if (dragData.isDragging) {
+            if (dragData.draggedObject == DraggedObject.POINT) {
+                points[dragData.draggedObjectIndex] = pointValue;
+                double[] polynomial = polyInterpolate(points);
+                polyLabel.setMarkup(polyPrint(polynomial));
+            }
+            else {
+                Vec2 pointScreenDelta = pointScreen - dragData.mousePressPosition;
+
+                Vec2 pointValueDelta = {
+                    x: mapRange(0.0, pointScreenDelta.x, getWidgetWidth(), 0.0, plotArea.xMax - plotArea.xMin),
+                    y: mapRange(0.0, pointScreenDelta.y, getWidgetHeight(), 0.0, plotArea.yMax - plotArea.yMin)
+                };
+
+                plotArea.xMin = dragData.mousePressPlotArea.xMin - pointValueDelta.x;
+                plotArea.xMax = dragData.mousePressPlotArea.xMax - pointValueDelta.x;
+                plotArea.yMin = dragData.mousePressPlotArea.yMin + pointValueDelta.y;
+                plotArea.yMax = dragData.mousePressPlotArea.yMax + pointValueDelta.y;
+
+
+            }
             queueDraw();
         }
 
@@ -137,9 +186,10 @@ class Plot : DrawingArea
 
         Vec2 pointValue = coordsScreenToValue(pointScreen);
 
+        dragData.mouseWasPressed = false;
         // if we are dragging, stop dragging
-        if (isDragging) {
-            isDragging = false;
+        if (dragData.isDragging) {
+            dragData.isDragging = false;
         }
         else {
 
@@ -250,7 +300,7 @@ class Plot : DrawingArea
     
         if (plotArea.isXAxisVisible()) {
             // find x axis position
-            double xAxisY = mapRange(plotArea.yMin, 0.0, plotArea.yMax, 0.0, HEIGHT);
+            double xAxisY = mapRange(plotArea.yMin, 0.0, plotArea.yMax, HEIGHT, 0.0);
             
             context.moveTo(0, xAxisY);
             context.lineTo(WIDTH, xAxisY);
