@@ -87,20 +87,33 @@ Widgets_t widgets;
 
 void main(string[] args)
 {
+    PlotArea defaultPlotArea = {
+        xMin: -10,
+        xMax: 10,
+        yMin: -5,
+        yMax: 5
+    };
+
+    PlotOptions defaultPlotOptions = {
+        pointSelectionTolerance: 8,
+        axisMarkerSize: 8,
+        pointDescriptionOffset: 8
+    };
+
     Main.init(args);
 
     Builder b = new Builder();
 
     if (!b.addFromFile("gui.glade")) {
-	writeln("Cannot load gui.");
-	return;
+        writeln("Cannot load gui.");
+	    return;
     }
 
     Widget win = cast(Widget) b.getObject("window");
     VBox vBox = cast(VBox) b.getObject("vbox");
 
     widgets.polyLabel      = new Label("Add some points, polynomial will be shown here.");
-    widgets.polyPlot       = new Plot(&widgets.polyLabel);
+    widgets.polyPlot       = new Plot(&widgets.polyLabel, defaultPlotArea, defaultPlotOptions);
     widgets.about          = cast(AboutDialog) b.getObject("about");
     widgets.pointAdd       = cast(Dialog) b.getObject("pointAddDialog");
     widgets.pointAddXEntry = cast(Entry) b.getObject("pointAddXEntry");

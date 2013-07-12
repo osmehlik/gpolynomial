@@ -59,7 +59,7 @@ class Plot : DrawingArea
     DragData dragData;
 
 
-    this(Label *polyLabel)
+    this(Label *polyLabel, PlotArea plotArea, PlotOptions plotOptions)
     {
         this.polyLabel = polyLabel;
 
@@ -72,15 +72,8 @@ class Plot : DrawingArea
         addEvents(GdkEventMask.BUTTON_PRESS_MASK);
         addEvents(GdkEventMask.POINTER_MOTION_MASK);
 
-        // TODO: replace with better defaults assignment
-        plotArea.xMin = -10;
-        plotArea.xMax =  10;
-        plotArea.yMin =  -5;
-        plotArea.yMax =   5;
-
-        plotOptions.pointSelectionTolerance = 8;
-        plotOptions.axisMarkerSize = 8;
-        plotOptions.pointDescriptionOffset = 8;
+        this.plotArea = plotArea;
+        this.plotOptions = plotOptions;
     }
 
     void addPoint(Vec2 point)
