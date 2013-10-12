@@ -9,9 +9,19 @@ SOURCES = \
   net/smehlik/math/geometry.d
 
 DC = dmd
-DFLAGS = `pkg-config --cflags --libs gtkd-2`
+
+ifdef WIN
+DFLAGS =
+DLIBS = -L+gtkd.lib -L/SUBSYSTEM:WINDOWS
+else
+DFLAGS = `pkg-config --cflags gtkd-2`
+DLIBS = `pkg-config --libs gtkd-2`
+endif
 
 $(PROG): $(SOURCES)
-	$(DC) $(DFLAGS) -of$@ $^ -unittest
+	$(DC) $(DFLAGS) -of$@ $^ $(DLIBS)
 clean:
 	rm $(PROG) *.o
+wininst: $(PROG)
+	"C:\Program Files (x86)\Inno Setup 5\ISCC.exe" platforms/win/installer.iss
+

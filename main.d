@@ -10,13 +10,18 @@ import gtk.Main;
 import gtk.VBox;
 import gtk.Label;
 import gtk.MainWindow;
+import gdk.Event;
 import net.smehlik.types;
 import net.smehlik.math.polynomial;
 import net.smehlik.gui.plotter;
 import std.stdio;
 import std.conv;
 
-extern(C) export void onAboutClicked(GtkMenuItem *item)
+// workaround for this bug in D optlink module:
+// http://d.puremagic.com/issues/show_bug.cgi?id=3956
+extern(C) export void dummy(){}
+
+extern(C) export void onHelpAboutClicked(Event event, Widget widget)
 {
     int response = widgets.about.run();
     if ((response == GtkResponseType.DELETE_EVENT)
