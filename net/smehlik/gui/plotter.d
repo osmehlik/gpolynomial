@@ -19,6 +19,9 @@ import net.smehlik.math.geometry;
 import std.algorithm;
 import std.math;
 import std.datetime;
+import std.conv;
+import std.stdio;
+import std.file;
 
 struct PlotArea
 {
@@ -413,5 +416,19 @@ class Plot : DrawingArea
         result.y = mapRange(0.0, screen.y, getWidgetHeight(), plotArea.yMax, plotArea.yMin);
         
         return result;
+    }
+    
+    void exportToFile(string path)
+    {
+        string content;
+        
+        foreach (Vec2 point; points) {
+            content ~= text(point.x) ~ "," ~ text(point.y) ~ "\n";
+        }
+
+        auto file = File(path, "w");
+
+        file.write(content);
+        file.close();
     }
 }

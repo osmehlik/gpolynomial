@@ -11,6 +11,8 @@ import gtk.VBox;
 import gtk.Label;
 import gtk.MainWindow;
 import gdk.Event;
+import gtk.FileChooserDialog;
+import gtk.FileFilter;
 import net.smehlik.types;
 import net.smehlik.math.polynomial;
 import net.smehlik.gui.plotter;
@@ -77,8 +79,43 @@ extern(C) export void onPointAddOkButtonClicked(GtkButton *button)
     widgets.pointAdd.hide();
 }
 
+extern(C) export void onSaveAsClicked(Widget *win)
+{
+    string[] options = new string[](2);
+    GtkResponseType[] responses = new ResponseType[](2);
+
+    options[0] = "Cancel";
+    options[1] = "Save";
+    responses[0] = GtkResponseType.CANCEL;
+    responses[1] = GtkResponseType.OK;
+
+    FileChooserDialog dialog = new FileChooserDialog(
+        "Select output file",
+        cast(Window)widgets.win,
+        GtkFileChooserAction.SAVE,
+        options,
+        responses
+    );
+
+    FileFilter filter = new FileFilter();
+
+    filter.setName("*.csv");
+    filter.addPattern("*.csv");
+
+    dialog.setSelectMultiple(false);
+    dialog.addFilter(filter);   
+
+    GtkResponseType response = cast(GtkResponseType) dialog.run();
+
+    if (response == ResponseType.OK) {
+        widgets.polyPlot.exportToFile(dialog.getFilename());
+    }
+    dialog.hide();
+}
+
 struct Widgets_t
 {
+    Widget win;
     AboutDialog about;
     Label polyLabel;
     Plot polyPlot;
@@ -117,6 +154,7 @@ void main(string[] args)
     Widget win = cast(Widget) b.getObject("window");
     VBox vBox = cast(VBox) b.getObject("vbox");
 
+    widgets.win = win;
     widgets.polyLabel      = new Label("Add some points, polynomial will be shown here.");
     widgets.polyPlot       = new Plot(&widgets.polyLabel, defaultPlotArea, defaultPlotOptions);
     widgets.about          = cast(AboutDialog) b.getObject("about");
