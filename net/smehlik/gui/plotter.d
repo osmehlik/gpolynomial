@@ -417,6 +417,24 @@ class Plot : DrawingArea
         
         return result;
     }
+
+    void importFromFile(string path)
+    {
+        auto file = File(path, "r");
+
+        foreach (line; file.byLine()) {
+            auto items = split(line, ",");
+
+            if (items.length >= 2) {
+                Vec2 point;
+
+                point.x = parse!double(items[0]);
+                point.y = parse!double(items[1]);
+
+                addPoint(point);
+            }
+        }
+    }
     
     void exportToFile(string path)
     {

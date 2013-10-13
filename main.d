@@ -79,6 +79,41 @@ extern(C) export void onPointAddOkButtonClicked(GtkButton *button)
     widgets.pointAdd.hide();
 }
 
+extern(C) export void onOpenClicked(Widget *win)
+{
+    string[] options = new string[](2);
+    GtkResponseType[] responses = new ResponseType[](2);
+
+    options[0] = "Cancel";
+    options[1] = "Open";
+    responses[0] = GtkResponseType.CANCEL;
+    responses[1] = GtkResponseType.OK;
+
+    FileChooserDialog dialog = new FileChooserDialog(
+        "Select input file",
+        cast(Window)widgets.win,
+        GtkFileChooserAction.OPEN,
+        options,
+        responses
+    );
+
+    FileFilter filter = new FileFilter();
+
+    filter.setName("*.csv");
+    filter.addPattern("*.csv");
+
+    dialog.setSelectMultiple(false);
+    dialog.addFilter(filter);
+
+    GtkResponseType response = cast(GtkResponseType) dialog.run();
+
+    if (response == ResponseType.OK) {
+        widgets.polyPlot.importFromFile(dialog.getFilename());
+    }
+    dialog.hide();
+
+}
+
 extern(C) export void onSaveAsClicked(Widget *win)
 {
     string[] options = new string[](2);
