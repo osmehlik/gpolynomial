@@ -9,6 +9,7 @@ SOURCES = \
   net/smehlik/math/geometry.d
 
 DC = dmd
+DESTDIR = /usr
 
 ifdef WIN
 DFLAGS =
@@ -22,6 +23,9 @@ $(PROG): $(SOURCES)
 	$(DC) $(DFLAGS) -of$@ $^ $(DLIBS)
 clean:
 	rm $(PROG) *.o
+install: $(PROG)
+	mkdir -p $(DESTDIR)/bin -m 755
+	install $(PROG) $(DESTDIR)/bin/$(PROG) -m 755
 wininst: $(PROG)
 	"C:\Program Files (x86)\Inno Setup 5\ISCC.exe" platforms/win/installer.iss
 
